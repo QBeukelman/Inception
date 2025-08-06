@@ -5,5 +5,3 @@
 ## What is the difference between a Container and a VM?
 
 ## Add Redis to WordPress
-
-
