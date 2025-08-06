@@ -6,14 +6,14 @@
 #    By: qbeukelm <qbeukelm@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/08/06 12:35:35 by qbeukelm          #+#    #+#              #
-#    Updated: 2025/08/06 13:01:47 by qbeukelm         ###   ########.fr        #
+#    Updated: 2025/08/06 13:23:42 by qbeukelm         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 
 # Variables
 COMPOSE = docker-compose
-YML = docker-compose.yml
+YML = srcs/docker-compose.yml
 
 # Start and build project
 # Builds Docker images, creates and startes containers (-d detached/in background)
