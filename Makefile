@@ -1,19 +1,21 @@
 # **************************************************************************** #
 #                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: qbeukelm <qbeukelm@student.42.fr>          +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2025/08/06 12:35:35 by qbeukelm          #+#    #+#              #
-#    Updated: 2025/08/06 13:23:42 by qbeukelm         ###   ########.fr        #
+#                                                         ::::::::             #
+#    Makefile                                           :+:    :+:             #
+#                                                      +:+                     #
+#    By: qbeukelm <qbeukelm@student.42.fr>            +#+                      #
+#                                                    +#+                       #
+#    Created: 2025/08/06 12:35:35 by qbeukelm      #+#    #+#                  #
+#    Updated: 2025/11/05 08:39:23 by quentinbeuk   ########   odam.nl          #
 #                                                                              #
 # **************************************************************************** #
 
 
 # Variables
-COMPOSE = docker-compose
-YML = srcs/docker-compose.yml
+# Prefer docker v2
+COMPOSE ?= $(shell if docker compose version >/dev/null 2>&1; then echo "docker compose"; else echo "docker-compose"; fi)
+YML ?= srcs/docker-compose.yml
+
 
 # Start and build project
 # Builds Docker images, creates and startes containers (-d detached/in background)

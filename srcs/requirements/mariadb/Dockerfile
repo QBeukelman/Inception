@@ -1,25 +1,27 @@
 # **************************************************************************** #
 #                                                                              #
-#                                                         :::      ::::::::    #
-#    Dockerfile                                         :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: qbeukelm <qbeukelm@student.42.fr>          +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2025/08/06 13:14:46 by qbeukelm          #+#    #+#              #
-#    Updated: 2025/11/04 13:16:51 by qbeukelm         ###   ########.fr        #
+#                                                         ::::::::             #
+#    Dockerfile                                         :+:    :+:             #
+#                                                      +:+                     #
+#    By: qbeukelm <qbeukelm@student.42.fr>            +#+                      #
+#                                                    +#+                       #
+#    Created: 2025/08/06 13:14:46 by qbeukelm      #+#    #+#                  #
+#    Updated: 2025/11/05 15:47:33 by quentinbeuk   ########   odam.nl          #
 #                                                                              #
 # **************************************************************************** #
-
 
 # Latest stable version Debian 12
 FROM debian:bookworm-slim
 
 # Install packages
 RUN apt-get update && \
-	apt-get install -y mariadb-server && \
-	rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends mariadb-server mariadb-client ca-certificates gosu && \
+    rm -rf /var/lib/apt/lists/*
 
-# Entry script handles first-run init
+# Allow external connections from other containers
+RUN sed -ri 's/^(bind-address\s*=).*/\1 0.0.0.0/' /etc/mysql/mariadb.conf.d/50-server.cnf
+
+# Init/entry script
 COPY tools/init-mariadb.sh /usr/local/bin/init-mariadb.sh
 RUN chmod +x /usr/local/bin/init-mariadb.sh
 
@@ -27,4 +29,5 @@ RUN chmod +x /usr/local/bin/init-mariadb.sh
 EXPOSE 3306
 
 # Define entrypoint / command
+ENTRYPOINT ["/usr/local/bin/init-mariadb.sh"]
 CMD ["mysqld"]

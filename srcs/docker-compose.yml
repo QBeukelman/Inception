@@ -1,6 +1,4 @@
 
-version: '3'
-
 services:
   mariadb:
     hostname: mariadb
@@ -10,10 +8,11 @@ services:
     restart: unless-stopped
     env_file: .env
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -uroot -p$$MYSQL_ROOT_PASSWORD -h 127.0.0.1 --silent"]
+      test: ["CMD-SHELL", "mysqladmin ping --socket=/run/mysqld/mysqld.sock --silent || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 30
+      start_period: 30s
     volumes:
       - db_data:/var/lib/mysql
     networks: [web]
@@ -23,13 +22,20 @@ services:
     build:
       context: requirements/wordpress
       dockerfile: Dockerfile
-    restart: unless_stopped
+    restart: unless-stopped
     depends_on:
       mariadb:
         condition: service_healthy
     env_file: .env
     volumes:
       - wp_data:/var/www/html
+    expose:
+      - "9000"
+    healthcheck:
+      test: ["CMD-SHELL", "php-fpm-healthcheck || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 30
     networks: [web]
 
   nginx:
@@ -39,11 +45,16 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     depends_on:
-      - wordpress
+      wordpress:
+        condition: service_started
     ports:
+      - "80:80"
       - "443:443"
     volumes:
-      - wp_data:/var/www/html
+      - ./requirements/nginx/conf/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./requirements/nginx/conf/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - wp_data:/var/www/html:ro
+      - certs:/etc/nginx/certs:ro 
     networks: [web]
 
 volumes:
@@ -52,15 +63,20 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /home/qbeukelm/data/mariadb
+      device: ${HOME}/data/mariadb
   wp_data:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /home/qbeukelm/data/wordpress
+      device: ${HOME}/data/wordpress
+  certs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${HOME}/data/certs
 
 networks:
   web:
     driver: bridge
-
