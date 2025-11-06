@@ -1,7 +1,16 @@
 # Inception
 
-[Medium Inception](https://medium.com/@imyzf/inception-3979046d90a0)
+### Check logs
 
-## What is the difference between a Container and a VM?
+```bash
+docker compose -f srcs/docker-compose.yml ps
+```
 
-## Add Redis to WordPress
+live logs
+
+```bash
+docker logs -f srcs-mariadb-1
+docker logs -f srcs-wordpress-1
+docker logs -f srcs-nginx-1
+```
+
