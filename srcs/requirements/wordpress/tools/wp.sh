@@ -1,44 +1,51 @@
 #!/usr/bin/env sh
-set -euo pipefail
+set -eu
 
 DOCROOT="/var/www/html"
 
-# Only run installation if wp-config.php does not exist
+# --- Read env with fallbacks (supports both DB_* and WP_DB_*) ---
+DB_HOST="${DB_HOST:-${WP_DB_HOST:-mariadb:3306}}"
+DB_NAME="${DB_NAME:-${WP_DB_NAME:-wordpress}}"
+DB_USER="${DB_USER:-${WP_DB_USER:-qbeukelm}}"
+DB_PASS="${DB_PASS:-${WP_DB_PASSWORD:-wp-pass}}"
+
+echo "[wp] Waiting for MariaDB @ $DB_HOST ..."
+php -r '
+  $h=getenv("DB_HOST"); $u=getenv("DB_USER"); $p=getenv("DB_PASS"); $d=getenv("DB_NAME");
+  if (strpos($h, ":") === false) { $port = 3306; } else { [$h,$port] = explode(":", $h, 2); $port=(int)$port; }
+  for ($i=0; $i<100; $i++) {
+    $m=@new mysqli($h,$u,$p,$d,$port);
+    if (!$m->connect_errno) { exit(0); }
+    fwrite(STDERR, "[wp] DB not ready ($i) errno={$m->connect_errno} error={$m->connect_error}\n");
+    sleep(1);
+  }
+  exit(1);
+'
+
+# One-time install if needed
 if [ ! -f "${DOCROOT}/wp-config.php" ]; then
   echo ">> Installing WordPress..."
-
-  # If WordPress files are not found, download with WP-CLI
-  if [ ! -f "${DOCROOT}/index.php" ]; then
-    wp core download --path="${DOCROOT}" --allow-root
-  fi
-
-  # Create wp-config.php with env vars
+  [ -f "${DOCROOT}/index.php" ] || wp core download --path="${DOCROOT}" --allow-root
   wp config create \
     --path="${DOCROOT}" \
-    --dbname="${WORDPRESS_DB_NAME:-wordpress}" \
-    --dbuser="${WORDPRESS_DB_USER:-wpuser}" \
-    --dbpass="${WORDPRESS_DB_PASSWORD:-wppass}" \
-    --dbhost="${WORDPRESS_DB_HOST:-mariadb}" \
+    --dbname="${DB_NAME}" \
+    --dbuser="${DB_USER}" \
+    --dbpass="${DB_PASS}" \
+    --dbhost="${DB_HOST}" \
     --skip-check \
     --allow-root
-
-  # First-time install:
-  # If database does not have WP site yet, perform wp install
   if ! wp core is-installed --path="${DOCROOT}" --allow-root; then
     wp core install \
       --url="${WP_URL:-http://localhost}" \
-      --title="${WP_TITLE:-WordPress}" \
+      --title="${WP_TITLE:-My Site}" \
       --admin_user="${WP_ADMIN_USER:-admin}" \
-      --admin_password="${WP_ADMIN_PASSWORD:-admin}" \
+      --admin_password="${WP_ADMIN_PASS:-adminpass}" \
       --admin_email="${WP_ADMIN_EMAIL:-admin@example.com}" \
+      --skip-email \
       --path="${DOCROOT}" \
       --allow-root
   fi
 fi
 
-# Make sure PHP-FPM user can write
-chown -R www-data:www-data "${DOCROOT}"
-
-# Start PHP-FPM (FastCGI Process Manager) in foreground
-echo ">> Starting php-fpm..."
-exec php-fpm -F
+echo "[wp] starting php-fpm..."
+exec php-fpm8.2 -F

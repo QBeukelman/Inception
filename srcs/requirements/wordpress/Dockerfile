@@ -6,7 +6,7 @@
 #    By: qbeukelm <qbeukelm@student.42.fr>            +#+                      #
 #                                                    +#+                       #
 #    Created: 2025/08/06 13:14:55 by qbeukelm      #+#    #+#                  #
-#    Updated: 2025/11/05 09:25:55 by quentinbeuk   ########   odam.nl          #
+#    Updated: 2025/11/05 20:07:22 by quentinbeuk   ########   odam.nl          #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,8 +18,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install PHP-FPM (FastCGI Process Manager), MySQL driver, curl, certs and clear apt cache
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      php-fpm php-cli php-mysql curl ca-certificates unzip \
-  && rm -rf /var/lib/apt/lists/*
+    php8.2-fpm php8.2-cli php8.2-mysql curl ca-certificates unzip \
+ && rm -rf /var/lib/apt/lists/*
 
 # Make PHP-FPM listen on TCP:9000
 RUN sed -ri 's|^;?listen\s*=.*|listen = 0.0.0.0:9000|' /etc/php/*/fpm/pool.d/www.conf \

@@ -6,7 +6,7 @@
 #    By: qbeukelm <qbeukelm@student.42.fr>            +#+                      #
 #                                                    +#+                       #
 #    Created: 2025/08/06 12:35:35 by qbeukelm      #+#    #+#                  #
-#    Updated: 2025/11/05 08:39:23 by quentinbeuk   ########   odam.nl          #
+#    Updated: 2025/11/06 13:53:49 by quentinbeuk   ########   odam.nl          #
 #                                                                              #
 # **************************************************************************** #
 
@@ -30,6 +30,9 @@ re:
 	$(MAKE) down
 	$(MAKE) up
 
+logs:
+	$(COMPOSE) -f $(YML) logs -f --tail=200
+
 clean:
 	$(COMPOSE) -f $(YML) down -v --remove-orphans
 	docker volume prune -f
@@ -37,4 +40,4 @@ clean:
 fclean:
 	docker rmi $$(docker images -q)
 
-.PHONY: up down re clean flcean
+.PHONY: up down re clean fclean
