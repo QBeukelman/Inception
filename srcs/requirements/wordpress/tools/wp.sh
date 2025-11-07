@@ -7,7 +7,7 @@ DOCROOT="/var/www/html"
 DB_HOST="${DB_HOST:-${WP_DB_HOST:-mariadb:3306}}"
 DB_NAME="${DB_NAME:-${WP_DB_NAME:-wordpress}}"
 DB_USER="${DB_USER:-${WP_DB_USER:-qbeukelm}}"
-DB_PASS="${DB_PASS:-${WP_DB_PASSWORD:-wp-pass}}"
+DB_PASS="${DB_PASS:-${WP_DB_PASSWORD:-1234}}"
 
 echo "[wp] Waiting for MariaDB @ $DB_HOST ..."
 php -r '

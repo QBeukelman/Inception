@@ -10,12 +10,13 @@ KEY="$CERT_DIR/$DOMAIN.key"
 
 mkdir -p "$CERT_DIR"
 
-if [ ! -s "$CRT" ] || [ ! -s "$KEY" ]; then
-  echo "[nginx] generating self-signed cert for $DOMAIN ..."
-	openssl req -x509 -nodes -newkey rsa:2048 -days 365 \
-	-subj "/CN=qbeukelm.42.fr" \
-	-keyout /etc/nginx/certs/qbeukelm.42.fr.key \
-	-out    /etc/nginx/certs/qbeukelm.42.fr.crt
+if [ ! -f "$CRT" ] || [ ! -f "$KEY" ]; then
+  echo "[nginx] generating self-signed cert for ${DOMAIN}..."
+  openssl req -x509 -nodes -newkey rsa:2048 -days 365 \
+    -keyout "$KEY" -out "$CRT" \
+    -subj "/CN=${DOMAIN}"
+  chmod 600 "$KEY"
+  chmod 644 "$CRT"
 else
-  echo "[nginx] certs already present for $DOMAIN"
+  echo "[nginx] certs already present for ${DOMAIN}"
 fi
