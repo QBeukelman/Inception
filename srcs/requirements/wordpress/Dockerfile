@@ -6,7 +6,7 @@
 #    By: qbeukelm <qbeukelm@student.42.fr>            +#+                      #
 #                                                    +#+                       #
 #    Created: 2025/08/06 13:14:55 by qbeukelm      #+#    #+#                  #
-#    Updated: 2025/11/05 20:07:22 by quentinbeuk   ########   odam.nl          #
+#    Updated: 2025/11/07 13:58:49 by quentinbeuk   ########   odam.nl          #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN sed -ri 's|^;?listen\s*=.*|listen = 0.0.0.0:9000|' /etc/php/*/fpm/pool.d/www.conf \
  && mkdir -p /run/php
 
-# Install WP-CLI
+# Install WP-CLI (Command-Line Interface)
 RUN curl -fsSL https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o /usr/local/bin/wp \
  && chmod +x /usr/local/bin/wp
 

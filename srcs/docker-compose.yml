@@ -1,45 +1,52 @@
+
 services:
+
+  # ========= Maria DB =========
   mariadb:
     build:
       context: ./requirements/mariadb
-    image: mariadb:custom
-    container_name: srcs-mariadb-1
+    image: mariadb
+    container_name: mariadb
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -uroot -p$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 3s
+      timeout: 2s
+      retries: 20
     env_file: .env
     volumes:
       - db_data:/var/lib/mysql
-    networks:
-      srcs_web:
-        aliases: [mariadb]
+    networks: [web]
 
+  # ========= WordPress =========
   wordpress:
     build:
       context: ./requirements/wordpress
-    image: wordpress:custom
-    container_name: srcs-wordpress-1
+    image: wordpress
+    container_name: wordpress
     restart: always
     entrypoint: ["/usr/local/bin/wp.sh"]
-    depends_on:
-      - mariadb
     env_file: .env
     environment:
       WORDPRESS_DB_HOST: mariadb:3306
       WORDPRESS_DB_NAME: wordpress
       WORDPRESS_DB_USER: qbeukelm
       WORDPRESS_DB_PASSWORD: "1234"
+    depends_on:
+      mariadb:
+        condition: service_healthy
     volumes:
       - wp_data:/var/www/html
     expose:
       - "9000"
-    networks:
-      srcs_web:
-        aliases: [wordpress]
+    networks: [web]
 
+  # ========= Nginx =========
   nginx:
     build:
       context: ./requirements/nginx
-    image: nginx:custom
-    container_name: srcs-nginx-1
+    image: nginx
+    container_name: nginx
     restart: always
     depends_on:
       - wordpress
@@ -55,9 +62,7 @@ services:
       - ./requirements/nginx/conf/default.conf:/etc/nginx/conf.d/default.conf:ro
       - wp_data:/var/www/html:ro
       - certs:/etc/nginx/certs
-    networks:
-      srcs_web:
-        aliases: [nginx]
+    networks: [web]
 
 volumes:
   db_data:
@@ -80,6 +85,6 @@ volumes:
       device: ${HOME}/data/certs
 
 networks:
-  srcs_web:
-    name: srcs_web
+  web:
     driver: bridge
+    name: web

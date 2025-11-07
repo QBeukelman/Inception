@@ -13,6 +13,9 @@ until nc -z "$APP_HOST" "$APP_PORT"; do
 done
 echo "[nginx] php-fpm reachable."
 
+/usr/local/bin/gen_certs.sh
+
+# Test nginx configuration
 nginx -t
 
 exec nginx -g 'daemon off;'
