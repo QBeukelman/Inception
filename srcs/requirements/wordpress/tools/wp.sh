@@ -3,29 +3,35 @@ set -eu
 
 DOCROOT="/var/www/html"
 
-# --- Read env with fallbacks (supports both DB_* and WP_DB_*) ---
-DB_HOST="${DB_HOST:-${WP_DB_HOST:-mariadb:3306}}"
-DB_NAME="${DB_NAME:-${WP_DB_NAME:-wordpress}}"
-DB_USER="${DB_USER:-${WP_DB_USER:-qbeukelm}}"
-DB_PASS="${DB_PASS:-${WP_DB_PASSWORD:-1234}}"
+# Require envs (no inline secrets in repo)
+: "${DB_HOST:?Set DB_HOST in .env}"
+: "${DB_NAME:?Set DB_NAME in .env}"
+: "${DB_USER:?Set DB_USER in .env}"
+: "${DB_PASS:?Set DB_PASS in .env}"
+: "${WP_URL:?Set WP_URL in .env}"
+: "${WP_TITLE:?Set WP_TITLE in .env}"
+: "${WP_ADMIN_USER:?Set WP_ADMIN_USER in .env}"
+: "${WP_ADMIN_PASS:?Set WP_ADMIN_PASS in .env}"
+: "${WP_ADMIN_EMAIL:?Set WP_ADMIN_EMAIL in .env}"
+: "${WP_USER:?Set WP_USER in .env}"
+: "${WP_USER_PASS:?Set WP_USER_PASS in .env}"
+: "${WP_USER_EMAIL:?Set WP_USER_EMAIL in .env}"
+WP_USER_ROLE="${WP_USER_ROLE:-author}"
 
 echo "[wp] Waiting for MariaDB @ $DB_HOST ..."
 php -r '
-  $h=getenv("DB_HOST"); $u=getenv("DB_USER"); $p=getenv("DB_PASS"); $d=getenv("DB_NAME");
-  if (strpos($h, ":") === false) { $port = 3306; } else { [$h,$port] = explode(":", $h, 2); $port=(int)$port; }
-  for ($i=0; $i<100; $i++) {
-    $m=@new mysqli($h,$u,$p,$d,$port);
-    if (!$m->connect_errno) { exit(0); }
-    fwrite(STDERR, "[wp] DB not ready ($i) errno={$m->connect_errno} error={$m->connect_error}\n");
-    sleep(1);
-  }
-  exit(1);
+  [$host,$port] = strpos(getenv("DB_HOST"),":")!==false ? explode(":",getenv("DB_HOST"),2) : [getenv("DB_HOST"),3306];
+  $u=getenv("DB_USER"); $p=getenv("DB_PASS"); $d=getenv("DB_NAME");
+  for ($i=0;$i<100;$i++){ $m=@new mysqli($host,$u,$p,$d,(int)$port);
+    if(!$m->connect_errno) exit(0);
+    fwrite(STDERR,"[wp] DB not ready ($i) ".$m->connect_error.PHP_EOL); sleep(1);
+  } exit(1);
 '
 
-# One-time install if needed
 if [ ! -f "${DOCROOT}/wp-config.php" ]; then
   echo ">> Installing WordPress..."
   [ -f "${DOCROOT}/index.php" ] || wp core download --path="${DOCROOT}" --allow-root
+
   wp config create \
     --path="${DOCROOT}" \
     --dbname="${DB_NAME}" \
@@ -34,16 +40,27 @@ if [ ! -f "${DOCROOT}/wp-config.php" ]; then
     --dbhost="${DB_HOST}" \
     --skip-check \
     --allow-root
+
   if ! wp core is-installed --path="${DOCROOT}" --allow-root; then
     wp core install \
-      --url="${WP_URL:-http://localhost}" \
-      --title="${WP_TITLE:-My Site}" \
-      --admin_user="${WP_ADMIN_USER:-admin}" \
-      --admin_password="${WP_ADMIN_PASS:-adminpass}" \
-      --admin_email="${WP_ADMIN_EMAIL:-admin@example.com}" \
+      --url="${WP_URL}" \
+      --title="${WP_TITLE}" \
+      --admin_user="${WP_ADMIN_USER}" \
+      --admin_password="${WP_ADMIN_PASS}" \
+      --admin_email="${WP_ADMIN_EMAIL}" \
       --skip-email \
       --path="${DOCROOT}" \
       --allow-root
+  fi
+fi
+
+if wp core is-installed --path="${DOCROOT}" --allow-root; then
+  if ! wp user get "$WP_USER" --path="${DOCROOT}" --allow-root >/dev/null 2>&1; then
+    echo ">> Creating secondary WP user: ${WP_USER} (${WP_USER_ROLE})"
+    wp user create "$WP_USER" "$WP_USER_EMAIL" \
+      --user_pass="$WP_USER_PASS" \
+      --role="$WP_USER_ROLE" \
+      --path="${DOCROOT}" --allow-root
   fi
 fi
 

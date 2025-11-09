@@ -12,9 +12,9 @@ set -eux
 # Read environment variables
 # -------------------------------------------------------------------
 : "${MYSQL_ROOT_PASSWORD:?Missing MYSQL_ROOT_PASSWORD}"
-: "${MARIADB_DATABASE:=wordpress}"
-: "${MARIADB_USER:=qbeukelm}"
-: "${MARIADB_PASSWORD:=1234}"
+: "${MARIADB_DATABASE:?Set MARIADB_DATABASE in .env}"
+: "${MARIADB_USER:?Set MARIADB_USER in .env}"
+: "${MARIADB_PASSWORD:?Set MARIADB_PASSWORD in .env}"
 
 # Make runtime directories and ownership
 mkdir -p /run/mysqld
