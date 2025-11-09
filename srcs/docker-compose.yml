@@ -64,6 +64,7 @@ services:
       - certs:/etc/nginx/certs
     networks: [web]
 
+# ========= Volumes =========
 volumes:
   db_data:
     driver: local
@@ -84,6 +85,7 @@ volumes:
       o: bind
       device: ${HOME}/data/certs
 
+# ========= Networks =========
 networks:
   web:
     driver: bridge
