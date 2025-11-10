@@ -8,6 +8,8 @@ mkdir -p ~/data/mariadb ~/data/wordpress ~/data/certs
 
 [Eval Sheet](https://github.com/Khoubaib-Boughalmi/42-evals/blob/master/ng_3_inception.pdf)
 
+[VM Installation](https://github.com/Bakr-1/inceptionVm-guide?tab=readme-ov-file)
+
 
 > _"Is the docker daemon running?"_ -> For MacOS, run `docker context use desktop-linux`.
 
