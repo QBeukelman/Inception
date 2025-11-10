@@ -8,21 +8,8 @@ mkdir -p ~/data/mariadb ~/data/wordpress ~/data/certs
 
 [Eval Sheet](https://github.com/Khoubaib-Boughalmi/42-evals/blob/master/ng_3_inception.pdf)
 
----
-<br/>
 
-
-### Check logs
-
-```bash
-docker compose -f srcs/docker-compose.yml ps
-```
-
-_"Is the docker daemon running?"_
-
-```bash
-docker context use desktop-linux
-```
+> _"Is the docker daemon running?"_ -> For MacOS, run `docker context use desktop-linux`.
 
 ---
 <br/>
@@ -51,18 +38,13 @@ docker network rm $(docker network Is -q) 2>/dev/null
 
 Docker is a container engine that runs applications in containers on top of the host OS kernel.
 
-- **Container**: an isolated runtime (filesystem, process, network, users) that packages an app with its dependencies. Isolation is provided by the Linux namespace and C-Groups (control groups); not virtualization. Containers can share data with **volumes** and talk to eachother on Docker managed **networks**.
+- **Container**: an isolated runtime (filesystem, process, network, users) that packages an app with its dependencies. Isolation is provided by the Linux namespace and C-Groups (control groups); not virtualization. Containers can share data with **volumes** and talk to eachother on Docker managed **networks**. Show running containers with `docker ps`.
 
 - **Image**: a immutable, layered filesystem snapshot and metadata (entrypoint, default command, environment, exposed ports). Containers are running instances of images.
 
 - **Volume** is storage that lives outside a container's writable layer so that data persists when containers are recreated or updated.
 
 - **Network** allows contaienrs to communicate. Containters attached to the same network can reach eachother by **IP** and **Name** (Dockers DNS). A **netowrk driver** defines how the network works. E.g **bridge** is a private subnet on the machine.
-
-```bash
-# Show running containers
-docker ps
-```
 
 
 ### How Docker works
@@ -129,6 +111,10 @@ Inside the network, each service is reachable by its **service name**. Compose i
 
 # NGINX with SSL/TLS
 
+NGINX is a high-performance, **event-driven** web server.
+
+It can **serve static files** (HTML, CSS, images) very fast, act as a **gateway** to forward requests to backend apps, and act as a **load balancer** to spread load accross multiple backends.
+
 - **Transport Layer Security (TLS)** is the standard protocol that secures network traffic, and turns `http://` into `https://`. TLS provides encryption and authentication. It does this via a **handshake** where the client and server validate a certificate, agree on ciphers and derive session keys, then send encripted application data.
 
 - **Secure Socket Layer** is the predecessor to TLS.
@@ -138,6 +124,23 @@ Inside the network, each service is reachable by its **service name**. Compose i
 ---
 <br/>
 
+
+# Wordpress with PHP-FPM and its Volume
+
+Wordpress is a polular CMS (content management system) written in PHP. It gives an admin dashboard to publish posts/pages, install themes and plugins, and stores content in a **MySQL/MariaDB** database.
+
+- **PHP-FPM**: (FastCGI Process Manager) is a process manager that runs a pool of worker processes behind an interface. It keeps PHP "warm", meaning theer are already PHP works running, instead of starting a new process each time.
+
+---
+<br/>
+
+
+# MariaDB and its Volume
+
+MariaDB is an open-source **relational database server**, used to store structured data in tables, and query it with SQL. In a Wordpress stack, PHP connects to MariaDB to read/write posts, users, options, etc.
+
+---
+<br/>
 
 
 # Testing

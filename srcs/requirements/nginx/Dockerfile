@@ -1,12 +1,12 @@
 # **************************************************************************** #
 #                                                                              #
-#                                                         ::::::::             #
-#    Dockerfile                                         :+:    :+:             #
-#                                                      +:+                     #
-#    By: qbeukelm <qbeukelm@student.42.fr>            +#+                      #
-#                                                    +#+                       #
-#    Created: 2025/08/06 13:14:51 by qbeukelm      #+#    #+#                  #
-#    Updated: 2025/11/07 14:10:01 by quentinbeuk   ########   odam.nl          #
+#                                                         :::      ::::::::    #
+#    Dockerfile                                         :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: qbeukelm <qbeukelm@student.42.fr>          +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2025/08/06 13:14:51 by qbeukelm          #+#    #+#              #
+#    Updated: 2025/11/10 10:08:17 by qbeukelm         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,6 +16,7 @@ FROM debian:bookworm-slim
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install nginx, tools
+# Delete APT list caches to shrink image layer
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         nginx \
