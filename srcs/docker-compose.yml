@@ -27,11 +27,6 @@ services:
     restart: always
     entrypoint: ["/usr/local/bin/wp.sh"]
     env_file: .env
-    environment:
-      WORDPRESS_DB_HOST: mariadb:3306
-      WORDPRESS_DB_NAME: wordpress
-      WORDPRESS_DB_USER: qbeukelm
-      WORDPRESS_DB_PASSWORD: "1234"
     depends_on:
       mariadb:
         condition: service_healthy
@@ -51,10 +46,6 @@ services:
     depends_on:
       - wordpress
     env_file: .env
-    environment:
-      DOMAIN: ${DOMAIN}
-      APP_HOST: wordpress
-      APP_PORT: "9000"
     ports:
       - "443:443"
     volumes:

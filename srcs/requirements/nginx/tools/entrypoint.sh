@@ -30,9 +30,5 @@ echo "[nginx] php-fpm reachable."
 # Run the scrip to generate a self-signed certificate
 /usr/local/bin/gen_certs.sh
 
-# Test nginx configuration
-# Test only -> parses nginx.conf and included files, checks cert file paths, etc.
-nginx -t
-
 # Start NGINX in the foreground (no forking)
 exec nginx -g 'daemon off;'

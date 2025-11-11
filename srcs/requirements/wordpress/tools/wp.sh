@@ -11,6 +11,9 @@ set -eux
 # -------------------------------------------------------------------
 # Read environment variables
 # -------------------------------------------------------------------
+WP_USER_ROLE="${WP_USER_ROLE:-author}"
+DOCROOT="/var/www/html"
+
 : "${DB_HOST:?Set DB_HOST in .env}"
 : "${DB_NAME:?Set DB_NAME in .env}"
 : "${DB_USER:?Set DB_USER in .env}"
@@ -24,40 +27,15 @@ set -eux
 : "${WP_USER_PASS:?Set WP_USER_PASS in .env}"
 : "${WP_USER_EMAIL:?Set WP_USER_EMAIL in .env}"
 
-WP_USER_ROLE="${WP_USER_ROLE:-author}"
-DOCROOT="/var/www/html"
-
 echo "[wp] Waiting for MariaDB @ $DB_HOST ..."
 
 php -r '
-  // Parse DB_Host "host:port"
-  // If there is a `:` split into port and host
-  [$host,$port] =
-  	strpos(getenv("DB_HOST"),":") !==false
-	  ? explode(":", getenv("DB_HOST"), 2)
-	  : [getenv("DB_HOST"), 3306];
-
-  // Read credentials and database name from environemnt
-  $u=getenv("DB_USER");
-  $p=getenv("DB_PASS");
-  $d=getenv("DB_NAME");
-
-  // Try to connect to MariaDB
-  for ($i=0; $i < 100; $i++) {
-	
-	// Suppress PHP warnings with @
-  	$m = @new mysqli($host, $u, $p, $d, (int)$port);
-    
-	// If no connection error -> DB exists -> exit with success (0)
-	if(!$m->connect_errno) exit(0);
-
-	// Print progress message and wait
-    fwrite(STDERR,"[wp] DB not ready ($i) ".$m->connect_error.PHP_EOL);
-	sleep(1);
-  }
-  
-  // Exit if we have tried 100 times
-  exit(1);
+[$host,$port] = strpos(getenv("DB_HOST"),":")!==false ? explode(":",getenv("DB_HOST"),2) : [getenv("DB_HOST"),3306];
+  $u=getenv("DB_USER"); $p=getenv("DB_PASS"); $d=getenv("DB_NAME");
+  for ($i=0;$i<100;$i++){ $m=@new mysqli($host,$u,$p,$d,(int)$port);
+    if(!$m->connect_errno) exit(0);
+    fwrite(STDERR,"[wp] DB not ready ($i) ".$m->connect_error.PHP_EOL); sleep(1);
+  } exit(1);
 '
 
 # If wp-config.php does not exist -> WP is not configured yet
@@ -67,8 +45,7 @@ if [ ! -f "${DOCROOT}/wp-config.php" ]; then
 
   # If index.php is missing
   # Download it as root to DOCROOT
-  [ -f "${DOCROOT}/index.php" ] ||
-  	wp core download --path="${DOCROOT}" --allow-root
+  [ -f "${DOCROOT}/index.php" ] || wp core download --path="${DOCROOT}" --allow-root
 
   # Generate wp-config.php with DB settings from env
   wp config create \
