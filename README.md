@@ -189,4 +189,7 @@ docker compose exec mariadb sh
 
 # Inside the container, log in as root
 mysql -uroot -p
+
+# Login as user
+mysql -h mariadb -u qbeukelm -p
 ```
