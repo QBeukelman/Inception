@@ -1,5 +1,8 @@
 # Inception
 
+
+![Architecture](images/Inception.png)
+
 mkdir -p ~/data/mariadb ~/data/wordpress ~/data/certs
 
 [Docker CLI Reference](https://docs.docker.com/reference/cli/docker/)
@@ -11,7 +14,7 @@ mkdir -p ~/data/mariadb ~/data/wordpress ~/data/certs
 [VM Installation](https://github.com/Bakr-1/inceptionVm-guide?tab=readme-ov-file)
 
 
-> _"Is the docker daemon running?"_ -> For MacOS, run `docker context use desktop-linux`.
+> _"Is the docker daemon running?"_ -> For MacOS, run `docker context use desktop-linux`
 
 ---
 <br/>
@@ -22,16 +25,14 @@ mkdir -p ~/data/mariadb ~/data/wordpress ~/data/certs
 When evaluation starts, run:
 
 ```bash
-docker stop $(docker ps -qa);
-docker rm $(docker ps -qa);
-docker rmi -f $(docker images -qa);
-docker volume rm $(docker volume Is -q);
-docker network rm $(docker network Is -q) 2>/dev/null
+# Clear all docker services
+docker stop $(docker ps -qa); docker rm $(docker ps -qa); docker rmi -f $(docker images -qa); docker volume rm $(docker volume Is -q); docker network rm $(docker network Is -q) 2>/dev/null
+
+# Delete volumes
+sudo rm -rf ~/data/mariadb/* ~/data/certs/* ~/data/wordpress/*
 ```
 
-### Login
-
-[https://qbeukelm.42.fr/wp-login.php](https://qbeukelm.42.fr/wp-login.php)
+**Login**: [https://qbeukelm.42.fr/wp-login.php](qbeukelm.42.fr/wp-login.php)
 
 
 ## Project Overview
@@ -123,6 +124,9 @@ It can **serve static files** (HTML, CSS, images) very fast, act as a **gateway*
 
 - **Self-Signed Certificate** is a cerficate signed by its own private key. It encrypts traffic, but browsers wont trust it by default.
 
+
+
+
 ---
 <br/>
 
@@ -147,6 +151,8 @@ MariaDB is an open-source **relational database server**, used to store structur
 
 # Testing
 
+You should not be able to access the website via `http://login.42.fr`
+
 ```bash
 # View running containers
 docker ps
@@ -155,5 +161,35 @@ docker ps
 curl -I http://qbeukelm.42.fr
 
 # HTTPS responds (-k for self-signed)
-curl -kI https://qbeukelm.42.fr
+curl -vIk https://qbeukelm.42.fr
+
+# Check certificate
+openssl s_client -connect qbeukelm.42.fr:443 -servername qbeukelm.42.fr </dev/null 2>/dev/null | openssl x509 -noout -subject -issuer -dates
+
+# Cnnect to 80 -> Expext failure
+nc -vz qbeukelm.42.fr 80
+
+# TSL v1.2 & v1.3
+curl -vI --tlsv1.3 https://qbeukelm.42.fr\
+
+# Check volumes
+docker volume ls
+docker volume inspect <name>
+```
+
+
+### Open MariaDB
+
+```bash
+# Open folder with docker-compose file
+cd srcs
+
+# Open a shell in the DB container
+docker compose exec mariadb sh
+
+# Inside the container, log in as root
+mysql -uroot -p
+
+# Login as user
+mysql -h mariadb -u qbeukelm -p
 ```
