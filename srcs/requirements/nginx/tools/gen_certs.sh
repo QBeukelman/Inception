@@ -13,24 +13,22 @@ set -eux
 # -------------------------------------------------------------------
 : "${DOMAIN:?DOMAIN must be set in environment}"
 
-CERT_DIR="/etc/nginx/certs"
-CRT="$CERT_DIR/$DOMAIN.crt"
-KEY="$CERT_DIR/$DOMAIN.key"
+SECRETS_DIR="/etc/nginx/certs"
+SECRET_CRT="$SECRETS_DIR/$DOMAIN.crt"
+SECRET_KEY="$SECRETS_DIR/$DOMAIN.key"
 
-mkdir -p "$CERT_DIR"
-
-# Check if either CRT or KEY file is missing
-if [ ! -f "$CRT" ] || [ ! -f "$KEY" ]; then
+# Check if either SECRET_CRT or SECRET_KEY file is missing
+if [ ! -f "$SECRET_CRT" ] || [ ! -f "$SECRET_KEY" ]; then
 
   echo "[nginx] generating self-signed cert for ${DOMAIN}..."
 
   # -x509		generates a seld signed cert
   # rsa:2048	generate a new 2048-bit RSA key
   openssl req -x509 -nodes -newkey rsa:2048 -days 365 \
-    -keyout "$KEY" -out "$CRT" \
+    -keyout "$SECRET_KEY" -out "$SECRET_CRT" \
 	-subj "/CN=${DOMAIN}"
-  chmod 600 "$KEY"
-  chmod 644 "$CRT"
+  chmod 600 "$SECRET_KEY"
+  chmod 644 "$SECRET_CRT"
 else
   echo "[nginx] certs already present for ${DOMAIN}"
 fi
