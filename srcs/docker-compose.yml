@@ -1,4 +1,11 @@
 
+# ========= Secrets =========
+secrets:
+  tls_key:
+    file: ${HOME}/data/certs/${DOMAIN}.key
+  tls_cert:
+    file: ${HOME}/data/certs/${DOMAIN}.crt
+
 services:
 
   # ========= Maria DB =========
@@ -43,6 +50,9 @@ services:
     image: nginx
     container_name: nginx
     restart: always
+    secrets:
+      - tls_key
+      - tls_cert
     depends_on:
       - wordpress
     env_file: .env

@@ -1,5 +1,13 @@
 # Inception
 
+## TODO
+
+3. The importance of the file structure.
+
+6. Restart the virtual machine. Ensure that all of the Wordpress data is still there.
+---
+<br/>
+
 
 ![Architecture](images/Inception.png)
 
@@ -12,6 +20,8 @@ mkdir -p ~/data/mariadb ~/data/wordpress ~/data/certs
 [Eval Sheet](https://github.com/Khoubaib-Boughalmi/42-evals/blob/master/ng_3_inception.pdf)
 
 [VM Installation](https://github.com/Bakr-1/inceptionVm-guide?tab=readme-ov-file)
+
+[Debian Releases](https://www.debian.org/releases)
 
 
 > _"Is the docker daemon running?"_ -> For MacOS, run `docker context use desktop-linux`
@@ -87,6 +97,10 @@ Docker containers are often used for web apps, APIs, sidecars (NGINX, Redis). Fo
 
 
 ### The importance of the directory structure
+
+One of the main benifits of Docker is the **isloation** it provides. Scoping each image's build its own folder prevents leaking unrelated files into the Docker **build context**.
+
+- **Build Context**: is the set of files that you send to the Docker engine when running `docker build`. Every `COPY`/`ADD` in a Docker file can only read files from inside this build context.
 
 ---
 <br/>
@@ -170,7 +184,7 @@ openssl s_client -connect qbeukelm.42.fr:443 -servername qbeukelm.42.fr </dev/nu
 nc -vz qbeukelm.42.fr 80
 
 # TSL v1.2 & v1.3
-curl -vI --tlsv1.3 https://qbeukelm.42.fr\
+curl -vI --tlsv1.3 https://qbeukelm.42.fr
 
 # Check volumes
 docker volume ls
@@ -192,4 +206,30 @@ mysql -uroot -p
 
 # Login as user
 mysql -h mariadb -u qbeukelm -p
+
+# Query data with SQL
+SHOW DATABASES;
+USE wordpress;
+SHOW TABLES;
+
+# Show table of users
+SELECT * FROM wp_users;
+```
+
+### Debian
+
+```bash
+# Switch to root user
+su -
+
+# Install sudo
+apt-get update && apt-get upgrade && apt-get install sudo -y
+
+# Add user to sudo
+adduser <username> sudo
+
+# Install docker engine
+
+# Reboot VM
+sudo reboot
 ```
