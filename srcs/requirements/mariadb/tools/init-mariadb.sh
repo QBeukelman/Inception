@@ -16,12 +16,16 @@ set -eux
 : "${MARIADB_USER:?Set MARIADB_USER in .env}"
 : "${MARIADB_PASSWORD:?Set MARIADB_PASSWORD in .env}"
 
-DATADIR="${DATADIR:-/var/lib/mysql}"
-SOCKET="/run/mysqld/mysqld.sock"
+DATADIR="/data"
+SOCKET_DIR="/run/mysqld"
+SOCKET="${SOCKET_DIR}/mysqld.sock"
 
 # Make runtime directories and ownership
-mkdir -p "$(dirname "$SOCKET")" "$DATADIR"
-chown -R mysql:mysql "$(dirname "$SOCKET")" "$DATADIR"
+mkdir -p "${SOCKET_DIR}"
+chown -R mysql:mysql "${SOCKET_DIR}"
+
+mkdir -p "${DATADIR}"
+chown -R mysql:mysql "${DATADIR}"
 
 # -------------------------------------------------------------------
 # First time init
