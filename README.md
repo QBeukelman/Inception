@@ -232,4 +232,8 @@ adduser <username> sudo
 
 # Reboot VM
 sudo reboot
+
+# Open browser in VM
+startx
+Richt click -> Open browser
 ```
