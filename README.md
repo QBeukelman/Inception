@@ -168,6 +168,9 @@ MariaDB is an open-source **relational database server**, used to store structur
 You should not be able to access the website via `http://login.42.fr`
 
 ```bash
+# View logs for one service
+docker logs <nginx>
+
 # View running containers
 docker ps
 

@@ -14,6 +14,8 @@ set -eux
 : "${DOMAIN:?DOMAIN must be set in environment}"
 
 SECRETS_DIR="/etc/nginx/certs"
+mkdir -p "$SECRETS_DIR"
+
 SECRET_CRT="$SECRETS_DIR/$DOMAIN.crt"
 SECRET_KEY="$SECRETS_DIR/$DOMAIN.key"
 
