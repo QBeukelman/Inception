@@ -1,12 +1,12 @@
 # **************************************************************************** #
 #                                                                              #
-#                                                         ::::::::             #
-#    Dockerfile                                         :+:    :+:             #
-#                                                      +:+                     #
-#    By: qbeukelm <qbeukelm@student.42.fr>            +#+                      #
-#                                                    +#+                       #
-#    Created: 2025/08/06 13:14:46 by qbeukelm      #+#    #+#                  #
-#    Updated: 2025/11/11 09:30:16 by quentinbeuk   ########   odam.nl          #
+#                                                         :::      ::::::::    #
+#    Dockerfile                                         :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: qbeukelm <qbeukelm@student.42.fr>          +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2025/08/06 13:14:46 by qbeukelm          #+#    #+#              #
+#    Updated: 2025/11/17 08:55:00 by qbeukelm         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,12 @@ FROM debian:bookworm-slim
 # Install packages
 # Delete APT list caches to shrink image layer
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends mariadb-server mariadb-client ca-certificates gosu && \
+    apt-get install -y --no-install-recommends \
+        mariadb-server \
+        mariadb-client \
+        ca-certificates \
+        gosu \
+        libedit2 && \
     rm -rf /var/lib/apt/lists/*
 
 # Allow external connections from other containers
