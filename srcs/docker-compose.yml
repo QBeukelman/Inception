@@ -1,11 +1,4 @@
 
-# ========= Secrets =========
-secrets:
-  tls_key:
-    file: ${HOME}/data/certs/${DOMAIN}.key
-  tls_cert:
-    file: ${HOME}/data/certs/${DOMAIN}.crt
-
 services:
 
   # ========= Maria DB =========
@@ -50,9 +43,6 @@ services:
     image: nginx
     container_name: nginx
     restart: always
-    secrets:
-      - tls_key
-      - tls_cert
     environment:
       - DOMAIN=qbeukelm.42.fr
     depends_on:

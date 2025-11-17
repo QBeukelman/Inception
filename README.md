@@ -36,7 +36,7 @@ When evaluation starts, run:
 
 ```bash
 # Clear all docker services
-docker stop $(docker ps -qa); docker rm $(docker ps -qa); docker rmi -f $(docker images -qa); docker volume rm $(docker volume Is -q); docker network rm $(docker network Is -q) 2>/dev/null
+docker stop $(docker ps -qa); docker rm $(docker ps -qa); docker rmi -f $(docker images -qa); docker volume rm $(docker volume ls -q); docker network rm $(docker network ls -q) 2>/dev/null
 
 # Delete volumes
 sudo rm -rf ~/data/mariadb/* ~/data/certs/* ~/data/wordpress/*
