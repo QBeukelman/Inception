@@ -1,4 +1,10 @@
 
+secrets:
+  tls_key:
+    file: ${HOME}/data/certs/${DOMAIN}.key
+  tls_cert:
+    file: ${HOME}/data/certs/${DOMAIN}.crt
+
 services:
 
   # ========= Maria DB =========
@@ -47,6 +53,9 @@ services:
       - DOMAIN=qbeukelm.42.fr
     depends_on:
       - wordpress
+    secrets:
+      - tls_key
+      - tls_cert
     env_file: .env
     ports:
       - "443:443"
