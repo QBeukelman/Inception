@@ -1,78 +1,113 @@
 #!/usr/bin/env sh
+
+# -------------------------------------------------------------------
+# Safety Flags -> Keep init from silently succeeding on failure
+#		-e : exit immediatly on any command returning non-zero
+#		-u : error on unset varaiables
+#		-x : trace every command
+# -------------------------------------------------------------------
 set -eux
 
+# -------------------------------------------------------------------
+# Read environment variables
+# -------------------------------------------------------------------
 : "${MYSQL_ROOT_PASSWORD:?Missing MYSQL_ROOT_PASSWORD}"
-: "${MARIADB_DATABASE:?Missing MARIADB_DATABASE}"
-: "${MARIADB_USER:?Missing MARIADB_USER}"
-: "${MARIADB_PASSWORD:?Missing MARIADB_PASSWORD}"
+: "${MARIADB_DATABASE:?Set MARIADB_DATABASE in .env}"
+: "${MARIADB_USER:?Set MARIADB_USER in .env}"
+: "${MARIADB_PASSWORD:?Set MARIADB_PASSWORD in .env}"
 
 DATADIR="/data"
 SOCKET_DIR="/run/mysqld"
-SOCKET="$SOCKET_DIR/mysqld.sock"
+SOCKET="${SOCKET_DIR}/mysqld.sock"
 
-mkdir -p "$SOCKET_DIR" "$DATADIR"
-chown -R mysql:mysql "$SOCKET_DIR" "$DATADIR"
+# Make runtime directories and ownership
+mkdir -p "${SOCKET_DIR}"
+chown -R mysql:mysql "${SOCKET_DIR}"
 
+mkdir -p "${DATADIR}"
+chown -R mysql:mysql "${DATADIR}"
+
+# -------------------------------------------------------------------
+# First time init
+# -------------------------------------------------------------------
+# If the internal MariaDB system table directory does NOT exist,
+# then the data directory has not been initalized yet.
 first_boot=0
 if [ ! -d "$DATADIR/mysql" ]; then
-    first_boot=1
-    echo "[mariadb] First boot, initializing datadir..."
-    mariadb-install-db \
-        --datadir="$DATADIR" \
-        --user=mysql \
-        --skip-test-db \
-        --auth-root-authentication-method=normal
+  
+  first_boot=1
+  echo "[mariadb] First boot: initializing datadir at $DATADIR"
+
+  # Check if the `mariadb-install-db` program exists in PATH
+  # 	`command -v` prints its path id found
+  if command -v mariadb-install-db >/dev/null 2>&1; then
+    # Initalize the MariaDB data directory with:
+	# 		--user=mysql	runs mysql user.
+	#		--datadir=...	where to place the files.
+	#		--skip-test-db	don't create a test database.
+    mariadb-install-db --datadir="$DATADIR" --user=mysql --auth-root-authentication-method=normal >/dev/null
+  else
+	# Fallback environment using MySQL tool
+    mysql_install_db --user=mysql --ldata="$DATADIR" >/dev/null
+  fi
 fi
 
-echo "[mariadb] Starting temporary server..."
+# Start a TEMP server to run SQL
+# Why temp? We want to initialize the DB before we expose it.
+# Only once complete, can we start the real server in the foreground with networking.
+# 		`gosu mysql`	drop root privileges and run as mysql user.
+#		`mysql`d``		run as daemon / in background.
+echo "[mariadb] Starting temporary server"
 gosu mysql mysqld \
-    --datadir="$DATADIR" \
-    --skip-networking \
-    --socket="$SOCKET" &
+  --datadir="$DATADIR" \
+  --skip-networking \
+  --socket="$SOCKET" &
 pid="$!"
 
-# Wait for mysqld startup
-echo "[mariadb] Waiting for socket..."
+# Wait for socket
+# 		`-S` 	checks "is this a socket?"
 for i in $(seq 1 30); do
-    if [ -S "$SOCKET" ]; then
-        echo "[mariadb] Socket OK"
-        break
-    fi
-
-    # FAIL FAST if mysqld died
-    if ! kill -0 "$pid" 2>/dev/null; then
-        echo "[mariadb] ERROR: Temporary server crashed!"
-        tail -n 50 /var/log/mysql/error.log || true
-        exit 1
-    fi
-
-    sleep 1
+  [ -S "$SOCKET" ] && break
+  sleep 1
 done
 
-if [ ! -S "$SOCKET" ]; then
-    echo "[mariadb] ERROR: mysqld did not create socket!"
-    exit 1
-fi
-
+# Ensure root password
 if [ "$first_boot" -eq 1 ]; then
-    echo "[mariadb] Setting root password..."
-    mysql --protocol=socket -u root -e \
-      "ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}'; FLUSH PRIVILEGES;"
+  mysql --protocol=socket -u root -e \
+	"ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}'; FLUSH PRIVILEGES;"
 fi
 
-echo "[mariadb] Creating user/database..."
-cat >/tmp/init.sql <<EOF
-CREATE DATABASE IF NOT EXISTS \`${MARIADB_DATABASE}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER IF NOT EXISTS '${MARIADB_USER}'@'%' IDENTIFIED BY '${MARIADB_PASSWORD}';
-GRANT ALL PRIVILEGES ON \`${MARIADB_DATABASE}\`.* TO '${MARIADB_USER}'@'%';
-FLUSH PRIVILEGES;
-EOF
+# Create DB
+#		open a `here-doc` << SQL
+cat >/tmp/init.sql <<SQL
+CREATE DATABASE IF NOT EXISTS \`${MARIADB_DATABASE}\`
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-mysql --protocol=socket -u root -p"${MYSQL_ROOT_PASSWORD}" < /tmp/init.sql
+CREATE USER IF NOT EXISTS '${MARIADB_USER}'@'%' IDENTIFIED BY '${MARIADB_PASSWORD}';
+ALTER USER '${MARIADB_USER}'@'%' IDENTIFIED BY '${MARIADB_PASSWORD}';
+
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${MARIADB_PASSWORD}';
+
+GRANT ALL PRIVILEGES ON \`${MARIADB_DATABASE}\`.*
+ TO '${MARIADB_USER}'@'%';
+FLUSH PRIVILEGES;
+SQL
+
+# Run the MariaDB client, and login as root
+# 		Redirect the SQL file to the clients stdin, executing its rules
+mysql --protocol=socket -uroot -p"${MYSQL_ROOT_PASSWORD}" < /tmp/init.sql
 rm -f /tmp/init.sql
 
-mysqladmin --protocol=socket --socket="$SOCKET" -u root -p"${MYSQL_ROOT_PASSWORD}" shutdown
+# Stop temp SQL server and launch real one
+mysqladmin --protocol=socket --socket="$SOCKET" -uroot -p"${MYSQL_ROOT_PASSWORD}" shutdown
 wait "$pid"
 
-echo "[mariadb] Starting main server..."
-exec gosu mysql mysqld --datadir="$DATADIR" --bind-address=0.0.0.0
+echo "[mariadb] launching server..."
+
+# Execute servier
+#		`gosu`	like sudo
+#		`$@`	forward and expand all script arguments to docker
+#		expands to `exec gosu mysql mysqld --datadir /data --skip-networking...`
+exec gosu mysql mysqld \
+  --datadir="$DATADIR" \
+  --bind-address=0.0.0.0
