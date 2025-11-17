@@ -54,7 +54,7 @@ services:
       - ./requirements/nginx/conf/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./requirements/nginx/conf/default.conf:/etc/nginx/conf.d/default.conf:ro
       - wp_data:/var/www/html:ro
-      - certs:/etc/nginx/certs
+      - /home/qbeukelm/data/certs:/etc/nginx/certs
     networks: [web]
 
 # ========= Volumes =========
