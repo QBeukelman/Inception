@@ -165,7 +165,7 @@ MariaDB is an open-source **relational database server**, used to store structur
 
 # Testing
 
-You should not be able to access the website via `http://login.42.fr`
+You should NOT be able to access the website via `http://login.42.fr`
 
 ```bash
 # View logs for one service
