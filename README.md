@@ -120,7 +120,15 @@ docker network inspect web
 
 ### Domain Name System (DNS)
 
-Inside the network, each service is reachable by its **service name**. Compose injects a DNS server so `wordpress` can reach `MariaDB` at `mariaDB:3306`.
+For Inception, DNS tries to answering:
+
+> _"When I type `qbeukelm.42.fr`"_ in a browser, how does this end up at my Nginx container?
+
+1. Host Level (outside Docker): Connects `qbeukelm.42.fr` to the machine's locat IP e.g. `127.0.0.1`.
+
+2. Doker level: `nginx` -> `wordpress` -> `mariadb` via Docker's internal DNS (Network) system using service names.
+
+**Sockets**: is an end point for communication. `service name` + `port` comprise a socket. In this case, `mariadb:443`, enables other contains such as WordPress to communicate with MariaDB.
 
 ---
 <br/>
@@ -134,12 +142,13 @@ It can **serve static files** (HTML, CSS, images) very fast, act as a **gateway*
 
 - **Transport Layer Security (TLS)** is the standard protocol that secures network traffic, and turns `http://` into `https://`. TLS provides encryption and authentication. It does this via a **handshake** where the client and server validate a certificate, agree on ciphers and derive session keys, then send encripted application data.
 
-- **Secure Socket Layer** is the predecessor to TLS.
+- **Secure Socket Layer (SSL)** is the predecessor to TLS.
 
-- **Self-Signed Certificate** is a cerficate signed by its own private key. It encrypts traffic, but browsers wont trust it by default.
+- **Self-Signed Certificate** skips Certificate Authority (CA), and browsers do not trust it. You generate a **key pair (cyphers)** and a **certificate**, and sign the certificate with the same key.
 
+	- **Certificate** is a public key + identify wrapper. It proves that "the private key belongs to the domain".
 
-
+	- **Private Key** is just a big randon number used to **decrypt** and **prove idendity** (by creating signitures).
 
 ---
 <br/>
@@ -165,7 +174,7 @@ MariaDB is an open-source **relational database server**, used to store structur
 
 # Testing
 
-You should NOT be able to access the website via `http://login.42.fr`
+You should NOT be able to access the website via `http://<login>.42.fr` (http - s).
 
 ```bash
 # View logs for one service
@@ -183,11 +192,15 @@ curl -vIk https://qbeukelm.42.fr
 # Check certificate
 openssl s_client -connect qbeukelm.42.fr:443 -servername qbeukelm.42.fr </dev/null 2>/dev/null | openssl x509 -noout -subject -issuer -dates
 
-# Cnnect to 80 -> Expext failure
+# Connect to 80 -> Expext failure
+# (netcat)
 nc -vz qbeukelm.42.fr 80
 
-# TSL v1.2 & v1.3
+# TSL try v1.2 & v1.3
 curl -vI --tlsv1.3 https://qbeukelm.42.fr
+
+# Force TLS v1.1
+openssl s_client -connect qbeukelm.42.fr:443 -tls1_1
 
 # Check volumes
 docker volume ls
@@ -238,5 +251,5 @@ sudo reboot
 
 # Open browser in VM
 startx
-Richt click -> Open browser
+# Right click -> Open browser
 ```

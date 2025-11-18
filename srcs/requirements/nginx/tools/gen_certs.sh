@@ -23,7 +23,7 @@ if [ ! -f "$SECRET_CRT" ] || [ ! -f "$SECRET_KEY" ]; then
 
   echo "[nginx] generating self-signed cert for ${DOMAIN}..."
 
-  # -x509		generates a seld signed cert
+  # -x509		generates a self signed cert, used by TLS
   # rsa:2048	generate a new 2048-bit RSA key
   openssl req -x509 -nodes -newkey rsa:2048 -days 365 \
     -keyout "$SECRET_KEY" -out "$SECRET_CRT" \
