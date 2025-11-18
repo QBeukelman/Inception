@@ -30,7 +30,7 @@ chown -R mysql:mysql "${DATADIR}"
 # -------------------------------------------------------------------
 # First time init
 # -------------------------------------------------------------------
-# If the internal MariaDB system table directory does NOT exist,
+# If the internal MariaDB system table directory does not exist,
 # then the data directory has not been initalized yet.
 first_boot=0
 if [ ! -d "$DATADIR/mysql" ]; then
