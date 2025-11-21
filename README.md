@@ -55,45 +55,46 @@ Docker is a container engine that runs applications in containers on top of the 
 
 - **Image**: a immutable, layered filesystem snapshot and metadata (entrypoint, default command, environment, exposed ports). Containers are running instances of images.
 
-- **Volume** is storage that lives outside a container's writable layer so that data persists when containers are recreated or updated.
+- **Volume**: is storage that lives outside a container's writable layer so that data persists when containers are recreated or updated.
 
-- **Network** allows contaienrs to communicate. Containters attached to the same network can reach eachother by **IP** and **Name** (Dockers DNS). A **netowrk driver** defines how the network works. E.g **bridge** is a private subnet on the machine.
+- **Network**: allows contaienrs to communicate. Containters attached to the same network can reach eachother by **IP** and **Name** (Dockers DNS). A **netowrk driver** defines how the network works. E.g **bridge** is a private subnet on the machine.
+
+- **Secrets**: pass sensitive data into a container. Secrets are not baked into the image, and are mounted as **read-only**. Secrets are not visible in `docker inspect`, env vars, and are only accessible at runtime. Only containers that explicitly list the secret get access to it.
 
 
 ### How Docker works
 
-Docker is based on the **Client Daemon Model**. The client runs docker commands, which talk to dockerd over a local API.
+Docker is based on the **Client Daemon Model**. The client runs docker commands, which talk to dockerd over a local API. Docker provides a level of virtualization.
 
-- **Client** is any program that calles the **Docker Engine API**. E.g. CLI (Command-Line Interface) `docker ...`.
+- **Client**: is any program that calles the **Docker Engine API**. E.g. CLI (Command-Line Interface) `docker ...`.
 
-- **Daemon / Dockerd** is program that runs as a background process. It builds images and runs containers.
+- **Daemon / Dockerd**: is program that runs as a background process. It builds images and runs containers.
 
-- **Docker Compose** is a **client** that reads a YAML file and asks the daemon to build and start all services together.
+- **Docker Compose**: is a **client** that reads a YAML file and asks the daemon to build and start all services together.
 
-> **_Is using daemons a good idea?_** <br>
-> For Docker avoid daemon processes. Run services in the **foregroud** so they become **PID 1**. (`nginx -g daemon off;`, `php-fpm -F`, `mysqld`). This keeps signals, logs, heath, and lifecycle correct.
+> **_Is using daemons a good idea?_** For Docker avoid daemon processes. Run services in the **foregroud** so they become **PID 1**. (`nginx -g daemon off;`, `php-fpm -F`, `mysqld`). This keeps signals, logs, heath, and lifecycle correct.
 
 
 ### Docker with / without Compose
 
-- **Without Compose** run a single image/container manually (`docker run ...`), and must configure networks, env vars, and volumes by hand every time.
+- **Without Compose**: run a single image/container manually (`docker run ...`), and must configure networks, env vars, and volumes by hand every time.
 
-- **With Compose** declare the entire stack once, including inter-service networking and persistence. Compose ensures consistent, repeatable bring-ups with one command (`docker compose up`).
+- **With Compose**: declare the entire stack once, including inter-service networking and persistence. Compose ensures consistent, repeatable bring-ups with one command (`docker compose up`).
 
 
 ### Benifit of Docker compared to VM
 
-1. **Footprint**:Containers share host kerel, and are lighter and faster to start (ms/s) vs. VMs (boot OS, minutes).
+1. **Footprint**: containers share host kerel, and are lighter and faster to start (ms/s) vs. VMs (boot OS, minutes).
 
-2. **Density**: Run many containers on the same host efficiently.
+2. **Density**: run many containers on the same host efficiently.
 
-3. **Immitability**: images are versioned and reporiducible.
+3. **Immitability**: images are versioned and reproducible.
 
 4. **Isolation**: process, filesystem, network isolation without full hardware virtualization.
 
 5. **Virtualization**: a VM virtualizes both the operating system kernel and the application layer. A Docker container virtualizes only the application layer, and runs on top of the host OS.
 
-Docker containers are often used for web apps, APIs, sidecars (NGINX, Redis). For app packaging conainers are the best fit. If you need different kernels or stronger isolation, VMs are a better fit.
+Docker containers are often used for web apps, APIs, sidecars (NGINX, Redis). For app packaging, conainers are the best fit. If you need different kernels or stronger isolation, VMs are a better fit.
 
 
 ### The importance of the directory structure
@@ -120,9 +121,7 @@ docker network inspect web
 
 ### Domain Name System (DNS)
 
-For Inception, DNS tries to answering:
-
-> _"When I type `qbeukelm.42.fr`"_ in a browser, how does this end up at my Nginx container?
+> For Inception, DNS tries to answering: _"When I type `qbeukelm.42.fr` in a browser, how does this end up at my Nginx container?"_
 
 1. Host Level (outside Docker): Connects `qbeukelm.42.fr` to the machine's locat IP e.g. `127.0.0.1`.
 
@@ -140,15 +139,15 @@ NGINX is a high-performance, **event-driven** web server.
 
 It can **serve static files** (HTML, CSS, images) very fast, act as a **gateway** to forward requests to backend apps, and act as a **load balancer** to spread load accross multiple backends.
 
-- **Transport Layer Security (TLS)** is the standard protocol that secures network traffic, and turns `http://` into `https://`. TLS provides encryption and authentication. It does this via a **handshake** where the client and server validate a certificate, agree on ciphers and derive session keys, then send encripted application data.
+- **Transport Layer Security (TLS)**: is the standard protocol that secures network traffic, and turns `http://` into `https://`. TLS provides encryption and authentication. It does this via a **handshake** where the client and server validate a certificate, agree on ciphers and derive session keys, then send encripted application data.
 
-- **Secure Socket Layer (SSL)** is the predecessor to TLS.
+- **Secure Socket Layer (SSL)**: is the predecessor to TLS.
 
-- **Self-Signed Certificate** skips Certificate Authority (CA), and browsers do not trust it. You generate a **key pair (cyphers)** and a **certificate**, and sign the certificate with the same key.
+- **Self-Signed Certificate**: skips Certificate Authority (CA), and browsers do not trust it. You generate a **key pair (cyphers)** and a **certificate**, and sign the certificate with the same key.
 
-	- **Certificate** is a public key + identify wrapper. It proves that "the private key belongs to the domain".
+	- **Certificate**: is a public key + identify wrapper. It proves that "the private key belongs to the domain".
 
-	- **Private Key** is just a big randon number used to **decrypt** and **prove idendity** (by creating signitures).
+	- **Private Key**: is just a big randon number used to **decrypt** and **prove idendity** (by creating signitures).
 
 ---
 <br/>
@@ -158,7 +157,7 @@ It can **serve static files** (HTML, CSS, images) very fast, act as a **gateway*
 
 Wordpress is a polular CMS (content management system) written in PHP. It gives an admin dashboard to publish posts/pages, install themes and plugins, and stores content in a **MySQL/MariaDB** database.
 
-- **PHP-FPM**: (FastCGI Process Manager) is a process manager that runs a pool of worker processes behind an interface. It keeps PHP "warm", meaning theer are already PHP works running, instead of starting a new process each time.
+- **PHP-FPM**: (FastCGI Process Manager) is a process manager that runs a pool of worker processes behind an interface. It keeps PHP "warm", meaning there are already PHP works running, instead of starting a new process each time.
 
 ---
 <br/>
@@ -243,8 +242,6 @@ apt-get update && apt-get upgrade && apt-get install sudo -y
 
 # Add user to sudo
 adduser <username> sudo
-
-# Install docker engine
 
 # Reboot VM
 sudo reboot
